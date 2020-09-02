@@ -53,7 +53,7 @@ $(document).ready(function(){
 		e.preventDefault();
 		$("#status").removeClass("hidden");
 		$("#submit").prop("disabled", true);
-		$.post("submit.php", {username: $("#username").val(), pw1: $("#pw1").val(), pw2: $("#pw2").val(), email: $("#email").val()}, function(reply){
+		$.post("submit_login.php", {username: $("#username").val(), pw1: $("#pw1").val(), pw2: $("#pw2").val(), email: $("#email").val()}, function(reply){
 			switch(reply)
 			{
 				case "succ":
