@@ -1,188 +1,122 @@
 <?php
-require("/var/www/html/site/bopimo.php");
-
+$ads = true;
+include '/var/www/html/site/bopimo.php';
 if(!$bop->logged_in())
 {
-  die(header('location: /home'));
+	die(header("location: /account/login"));
 }
-if(isset($_POST['req']))
-{
-  require("/var/www/html/api/rest.php");
-  switch($_POST['req'])
-  {
-    /*
-    if the request is bio
-    */
-    case "bio":
-      if($bop->antiJake($_POST['bio']))
-      {
-        $rest->error('Error changing bio: All fields are required.');
-        die();
-      }
-      $bio = $_POST['bio'];
-      if(strlen($bio) < 5 || strlen($bio) > 4000)
-      {
-        $rest->error('Error changing bio: Bio must be 5-4000 characters long.');
-        die();
-      }
-      if($bop->tooFast(5))
-      {
-        $rest->error('Error changing bio: You are performing actions too fast. Please wait.');
-        die();
-      }
-      $user = $bop->local_info();
-      $bop->update_("users", ["bio" => $bio], ["id" => $user->id]);
-      $bop->updateFast();
-      $rest->success();
-      break;
-    case "username":
-      if($bop->antiJake($_POST['username']))
-      {
-        $rest->error('Error changing username: All fields are required.');
-        die();
-      }
-      if(strlen($_POST['username']) < 3 || strlen($_POST['username']) > 20)
-      {
-        $rest->error('Error changing username: Username must be 3-20 characters long.');
-        die();
-      }
-      if($bop->tooFast(5))
-      {
-        $rest->error('Error changing username: You are performing actions too fast. Please wait.');
-        die();
-      }
-      if($bop->local_info()->bop < 100)
-      {
-        $rest->error('Error changing username: You do not have enough Vix.');
-        die();
-      }
-      if($bop->user_exists($_POST['username'])) {
-        $rest->error('Error changing username: Username already taken.');
-        die();
-      }
-      if(!ctype_alnum($_POST['username'])) {
-        $rest->error('Error changing username: Username can only contain alphanumeric characters.');
-        die();
-      }
-      $bop->insert("username_changes", [
-        "user" => $_SESSION["id"],
-        "old_username" => $bop->local_info()->username,
-        "new_username" => $_POST['username']
-      ]);
-      $bop->update_("users", ["username" => $_POST['username'], "bop" => $bop->local_info()->bop - 100], ["id" => $_SESSION['id']]);
-      $bop->updateFast();
-      $rest->success();
-    break;
-  }
+$pageName = "Dashboard";
+include '/var/www/html/site/header.php';
 
+$avatar = $bop->avatar($_SESSION['id']);
 
+$user = $bop->local_info(["username", "status", "id"]);
+?>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({
+google_ad_client: "ca-pub-9016364683167219",
+enable_page_level_ads: true
+});
+</script>
+<div class="banner success hidden">
+	[Success]
+</div>
+<div class="banner danger hidden">
+	[Error]
+</div>
 
-  /*
-  actual cool page
-  */
-} else {
-  require("/var/www/html/site/header.php");
-  $user = $bop->local_info();
-  ?>
-  <style>
-    hr {
-      border:1px solid #d3d3d3;
-    }
-    .cool-input {
-      margin-bottom:10px;
-    }
-  </style>
-  <div class="banner success hidden">
-    [Success]
-  </div>
-  <div class="banner danger hidden">
-    [Error]
-  </div>
-  <div class="content">
-    <div class="col-1-1">
-		 <div class="page-title">Settings</div>
-      <div class="col-2-12">
-        <div class="shop-button current" data-category="1">Info</div>
-        <div class="shop-button" data-category="2">Security</div>
-        <div class="shop-button" data-category="3">Payments</div>
-      </div>
+<div class="content">
+	<h1>Welcome back, <?=htmlentities($user->username)?>.</h1>
+	<div class="col-4-12 centered">
+		<div class="card b">
+			<div class="top">
+				Your Avatar
+			</div>
+			<div class="body">
+				<image src="https://storage.vertineer.com/avatars/<?=$avatar->cache?>.png" class="image">
+					<br>
+					&nbsp;
+					<a href="/profile/<?=$user->id?>">Your Profile</a>
+			</div>
+		</div>
+		<div class="card b">
+			<div class="top centered" style="background-color:#f3c133;">
+				Announcements
+			</div>
+			<div style="padding: 20px;font-size:1.2rem;">
+			<a style="color:#000;" href="https://blog.vertineer.com/welcome-to-our-blog/">Welcome to Our Blog</a>
+			</div>
+		</div>
+		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- Generic Square Ad -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-6691594709216274"
+     data-ad-slot="9367246644"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+	</div>
+	
+	<div class="col-8-12">
+		<div class="card b">
+			<div class="top centered">
+				Your Status
+			</div>
+			<div class="body centered">
+				<input class="width-80" id="statusText" value="<?=htmlentities($user->status)?>">
+				<a href="#"><div class="button warning" id="statusUpdate">Update</div></a>
+			</div>
+		</div>
+	</div>
+	<div class="col-8-12">
+		<div class="card b" style="margin-bottom:0px;">
+			<div class="top centered">
+				Your Feed
+			</div>
+		</div>
+		<?php
+		$sql = $bop->query("SELECT dashboard.* FROM friends INNER JOIN dashboard ON friends.to = dashboard.user OR friends.from = dashboard.user WHERE (friends.to = ? OR friends.from = ?) AND friends.status = 1 AND dashboard.user != ? ORDER BY `id` DESC LIMIT 0, 7", [$user->id, $user->id, $user->id]);
 
-      <!-- Your Info !-->
-      <span id="1">
-        <div class="col-10-12">
-          <div class="card b" id="1">
-            <div class="top">
-              Info
-            </div>
-          </div>
-          <div class="card border">
-            <b>Your Bio:</b>
-            <br>
-            <div class="col-1-1 cool-input" style="padding-right:0px;">
-              <textarea id="bio" style="height:300px;resize:none;width:100%;"><?=htmlentities($user->bio)?></textarea><button style="float:right;" class="button success" req="bio">Update Bio</button>
-            </div>
-          </div>
-          <div class="card border">
-            <b>Email (<?=($user->verified == 1) ? '<font color="green">Verified</font>' : '<font color="red">Not Verified</font>'?>)</b>
-            <br>
-            <form id="submitEmail" method="POST" action=""><input type="email" id="email" placeholder="Email Here" class="width-100" value="<?=htmlentities($user->email)?>"><input type="submit" value="Update" class="button success width-100"></form>
-          </div>
-          <div class="card border">
-            <b>Change Username (100 Vix)</b>
-            <br>
-            <form id="submitUsername" method="POST"><input type="text" id="username" placeholder="New username here" class="width-100"><button class="button success width-100" req="username">Update</button></form>
-          </div>
-        </div>
-      </span>
+		if($sql->rowCount() == 0)
+		{
+			?>
+			<div class="card border" style="margin: 5 0px;">
+				No results
+			</div>
+			<?php
+		} else {
+			foreach($sql->fetchAll(PDO::FETCH_ASSOC) as $d)
+			{
+				$d = (object) $d;
+				$getDashUser = $bop->get_user($d->user);
+				$avatar = $bop->avatar($getDashUser->id);
+				?>
+				<div class="card border" style="margin: 5 0px;">
+					<div class="col-2-12 centered">
+						<a href="/profile/<?=$getDashUser->id?>">
+							<img src="https://storage.vertineer.com/heads/<?=$avatar->headshot?>.png" class="image" style="border-radius:100px;">
+							<?=htmlentities($getDashUser->username)?>
+						</a>
+					</div>
+					<div class="col-10-12">
+						<?=$bop->bbCode($d->text)?>
+					</div>
+					<div class="col-10-12" style="font-size:12px;color:grey;">
+						<b>Posted: <?=$bop->timeAgo($d->time)?></b>
+					</div>
+				</div>
+				<?php
+			}
+		}
+		?>
 
-      <!-- Security !-->
-      <span id="2" class="hidden col-10-12">
-        <div class="card b">
-          <div class="top">
-            Security
-          </div>
-        </div>
-        <div class="card border">
-          <b>Password</b>
-          <br>
-          <div class="col-1-1"><button id="resetPassword" class="width-100 button success">Send email to change password.</button></div>
-        </div>
-		<div class="card border">
-          <b>Secure Sign Out</b>
-          <br>
-          <div class="col-1-1"><button href="https://vertineer.com/account/logout.php" class="width-100 button success">Sign out of all other sessions.</button></div>
-        </div>
-      </span>
-      <!-- Privacy !-->
-      <span class="hidden col-10-12" id="3">
-        <div class="card b">
-          <div class="top">
-            Payments
-          </div>
-        </div>
-
-        <?php
-        $transactions = $bop->query("SELECT * FROM payment_logs WHERE user=? ORDER BY time DESC", [$localUser->id], true);
-        if(count($transactions) == 0)
-        {
-          ?>
-          <div class="card border">You have made no transactions.</div>
-          <?php
-        } else {
-          foreach($transactions as $row)
-          {
-            ?>
-            <div class="card border">You bought <?=$row['amount']?> <?=$bop->timeAgo($row['time'])?></div>
-            <?php
-          }
-        }
-        ?>
-      </span>
-      </div>
-    </div>
-  </div>
-  <script src="account.js?<?=rand()?>"></script>
-  <?php
-  $bop->footer();
-}
+	</div>
+</div>
+<script src="home.js?r=<?=time()?>"></script>
+<?php
+$bop->footer();
 ?>
