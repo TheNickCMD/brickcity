@@ -1,0 +1,294 @@
+<?php
+
+/*echo "<script type='text/javascript'> document.location = '/maintenance'; </script>";*/
+require_once("/var/www/html/site/bopimo.php");
+
+if (isset($nogrid)) {
+	if ($nogrid) {
+		$nogrid = true;
+	} else {
+	$nogrid = false;
+	}
+} else {
+	$nogrid = false;
+}
+?>
+
+<html>
+	<head>
+	<link rel="stylesheet" type="text/css" href="main.css">
+
+		<title><?=(isset($pageName)) ? $pageName . " Brick city" : "Brick city"?></title>
+		<!-- CSS -->
+		<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+		<link rel="icon" type="image/png" href="https://storage.vertineer.com/images/vert.png">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet" type="text/css" href="/css/main.css?c=<?=filemtime("/var/www/html/css/main.css")?>" />
+		<link rel="stylesheet" type="text/css" href="/css/simplegrid.css?<?=filemtime("/var/www/html/css/simplegrid.css")?>" />
+		<link rel="stylesheet" type="text/css" href="/alert.css?<?=filemtime("/var/www/html/alert.css")?>" />
+		<link rel="stylesheet" type="text/css" href="/css/tooltipster.bundle.css?<?=filemtime("/var/www/html/css/tooltipster.bundle.css")?>" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link href="https://fonts.googleapis.com/css?family=Quicksand:400,500,700" rel="stylesheet">
+		<!-- JS -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<script src="/js/api.js?c=<?=filemtime("/var/www/html/js/api.js")?>"></script>
+		<script src="/js/tooltipster.bundle.min.js"></script>
+		<script src="/js/main.js"></script>
+		  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Quicksand:400,500,700" rel="stylesheet">
+   <script src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+
+			<script src="/js/admin.js"></script>
+
+		<script async src="https://www.googletagmanager.com/gtag/js?id=UA-146849607-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-146849607-1');
+</script>
+
+
+
+		<!-- Misc. -->
+	<!--	<meta content="" name="token" /> -->
+	<meta charset="UTF-8">
+	<meta property="og:site_name" content="vertineer.com">
+	<meta property="og:image" content="https://storage.vertineer.com/images/vert.png">
+	<meta name="description" content="Welcome to brick city!">
+	<meta name="keywords" content="Vertineer, Vertineer thread, Vertineer Game">
+	<meta name="author" content="Vertineer">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta content="<?=$bop->getCsrfToken()?>" name="token" />
+
+	</head>
+
+	<div class="entire-site" style="min-height:100%;">
+	  <style>
+	.navbar-elements {
+  background-color: #444 !important;
+  height: 1.6rem;
+  color: white;
+  padding: 8px;
+  border-radius: 5px;
+}
+
+.navbar-elements a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.navbar-elements a:focus,
+a:hover {
+  color: #E1E1E1;
+  text-decoration: none;
+}
+	  </style>
+	<?php
+	if($bop->logged_in())
+	{
+		$localUser = $bop->local_info();
+		$user = $localUser;
+		if(intval($localUser->nextreward) < time())
+		{
+			$bop->update_("users", ["nextreward" => time() + 86400, "bop" => $localUser->bop + 15, "rewarded" => time()], ["id" => $localUser->id]);
+		}
+		if(!$bop->isVerified($localUser->id) && !isset($ignore))
+		{
+			//die(header("location: /verification"));
+		}
+		if(!$bop->user_exists($_SESSION['id']))
+		{
+			die(header("/account/logout.php"));
+		}
+		if($bop->isBanned($localUser->id) && !isset($bannedPage))
+		{
+			require("/var/www/html/account/banned.php");
+			die();
+		}
+		$bop->update_("users", ["lastseen" => time()], ["id" => $localUser->id]);
+		$localAvatar = $bop->avatar($localUser->id);
+		$notifications = $bop->query("SELECT COUNT(*) FROM notifications WHERE user=? AND `read`=0", [$_SESSION['id']])->fetchColumn();
+		$pages_top = array(
+			"left" => [
+			    "<i class='fas fa-home'></i> Dashboard" => "/",
+				"<i class='fas fa-gamepad'></i> Games" => "/games",
+				"<i class='fas fa-shopping-basket'></i> Shop" => "/shop",
+				"<i class='fas fa-users'></i> Users" => "/users",
+				"<i class='fas fa-comment-alt'></i> Forum" => "/forum",
+				"<i class='fas fa-user-friends'></i> Cults" => "/community",
+			],
+			"right" => [
+				($notifications > 0) ? "<i class='fas fa-bell'></i> Notifications ({$notifications})" : "<i class='fas fa-bell'></i> Notifications" => "/notifications",
+				"<i class='fas fa-user-edit'></i> Avatar" => "/customize",
+				"<i class='fas fa-cog'></i> Settings" => "/account",
+				"<i class='fas fa-sign-out-alt'></i> leave" => "/account/logout.php",
+			]
+		);
+		$pendingCount = $bop->query("SELECT COUNT(id) as total FROM friends WHERE friends.to = ? AND friends.status = 0;", [$_SESSION["id"]])->fetchColumn();
+		$friendsText = ($pendingCount > 0) ? "<i class='fas fa-user-friends'></i> Friends (".$pendingCount.")" : "Friends";
+		$tradeCount = $bop->query("SELECT COUNT(*) as count FROM trades WHERE status = 0 AND to_user = ?", [$_SESSION['id']])->fetchColumn(0);
+		$msgCount = $bop->query("SELECT COUNT(id) FROM messages WHERE messages.to = ? AND messages.read = 0;", [$_SESSION["id"]])->fetchColumn();
+		$pages_bottom = array(
+			"left" => [
+					"<i class='fas fa-user'></i> Profile" => "/profile/{$localUser->id}",
+					"<i class='fas fa-tshirt'></i> Inventory" => "/profiles/inventory.php?id={$localUser->id}",
+					$friendsText => "/friends",
+
+				],
+			"right" => [
+
+				"<i class='fas fa-coins'></i> {$localUser->bop} Vix" => "https://www.vertineer.com/membership",
+				"<i class='fas fa-money-bill'></i> {$localUser->vex} Vex" => "https://www.vertineer.com/membership",
+				($tradeCount > 0) ? "Trades ({$tradeCount})" : "<i class='fas fa-exchange-alt'></i> Trades" => "/trades",
+				($msgCount > 0) ? "<i class='fas fa-envelope'></i> Messages ({$msgCount})" : "Messages" => "/messages",
+				"<i class='fas fa-user-shield'></i> Upgrade" => "https://www.vertineer.com/membership",
+				'img' => "#",
+			]
+		);
+		if ($bop->isAdmin()) {
+			$pendingCount2 = $bop->query("SELECT COUNT(id) AS pending FROM items WHERE verified = ?", [0])->fetchColumn();
+			$adminText = ($pendingCount2 > 0) ? "Admin Panel (".$pendingCount2.")" : " <i class='fas fa-gavel'></i> Admin Panel";
+			$pages_bottom["left"][$adminText] = "/admin/";
+		}
+	} else {
+		$pages_top = array(
+			"left" => [
+				"Home" => "/",
+				"Users" => "/users",
+				"Shop" => "/shop",
+				"Cults" => "/community"
+			],
+			"right" => [
+				"Login" => "/account/login",
+				"Register" => "/account/register"
+			]
+		);
+	}
+	?>
+	<body>
+	  <?php if(!$bop->logged_in()) { ?>
+<nav2>
+      <div style="background: #000000 !important;" class="logo">
+        <div class="grid grid-pad">
+        <div class="left">
+          <div class="navbar-elements">
+            &nbsp;
+            <a> <i class="fas fa-user"></i> &nbsp; Welcome to Brick city!!! &nbsp;</a>
+          </div>
+        </div>
+        <img style="height:50px; width: 50px;" src="https://media.discordapp.net/attachments/742228111558705152/742240747633377411/BCL-final.png?width=468&height=468" />
+        <div class="right">
+          <div class="navbar-elements">
+            &nbsp;
+            <a href="/account/login"> <i class="fas fa-user"></i> &nbsp; Login </a>
+            &nbsp;
+            &nbsp;
+            &nbsp;
+            <a href="/account/register"> <i class="fas fa-users"></i> &nbsp; Register </a>
+            &nbsp;
+          </div>
+        </div>
+      </div>
+      <div class="container">
+      </div>
+    </div>
+    </nav2>
+				<?php
+	  }
+				if($bop->logged_in())
+				{
+					$localUser = $bop->local_info();
+					$localAvatar = $bop->avatar($localUser->id);
+					?>
+
+    <nav2>
+      <div style="background: #000000 !important;" class="logo">
+        <div class="grid grid-pad">
+        <div class="left">
+          <div class="navbar-elements">
+            &nbsp;
+            <a> <i class="fas fa-user"></i> &nbsp; Welcome back, <?=$localUser->username?> &nbsp;</a>
+          </div>
+        </div>
+        <img style="height:50px; width: 50px;" src="https://media.discordapp.net/attachments/742228111558705152/742240747633377411/BCL-final.png?width=468&height=468" />
+        <div class="right">
+        <div class="navbar-elements">
+          &nbsp;
+          <a href="#"> <i class="fas fa-coins"></i>  </a> &nbsp; <?=number_format($localUser->bop)?> </a>
+          &nbsp;
+          &nbsp;
+          <a href="/friends"> <i class="fas fa-user-friends"></i> &nbsp; <?=number_format($pendingCount)?> </a>
+          &nbsp;
+          &nbsp;
+          <a href="/messages"> <i class="fas fa-envelope"></i> &nbsp; <?=number_format($msgCount)?> </a>
+          &nbsp;
+          &nbsp;
+          <a href="/trades"> <i class="fas fa-exchange-alt"></i> &nbsp; <?=number_format($tradeCount)?> </a>
+          <?php if($localUser->admin >= 1) { ?>
+          &nbsp;
+          &nbsp;
+          <a href="/admin"> <i class="fas fa-gavel"></i> &nbsp; <?=number_format($pendingCount2)?> </a>
+          <?php } ?>
+          &nbsp;
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="container">
+        <ul>
+          <div class="grid">
+            <div class="left">
+              <li><a href="/" class="games"> <i class="fas fa-home"></i> Home</a></li>
+			  <li><a href="/games" class="games"> <i class="fas fa-gamepad"></i> Games</a></li>
+              <li><a href="/shop" class="shop"> <i class="fas fa-shopping-cart"></i> Shop</a></li>
+              <li><a href="/forum" class="forums"> <i class="fas fa-comment-alt"></i> Forums</a></li>
+              <li><a href="/users/" class="users"> <i class="fas fa-users"></i> Users</a></li>
+              <li><a href="/community" class="groups"> <i class="fas fa-user-friends"></i> Cults</a></li>
+              <li><a href="/membership" class="upgrade"> <i class="fa fa-shopping-cart"></i> Upgrade</a></li>
+            </div>
+            <div class="right">
+              <li><a href="/customize" class="customize"> <i class="fas fa-user-edit"></i> Customize</a></li>
+              <li><a href="/account/" class="settings"> <i class="fas fa-cog"></i> Settings</a></li>
+              <li><a href="/account/logout.php" class="logout"> <i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </div>
+          </div>
+        </ul>
+      </div>
+    </nav2>
+					<?php
+				}
+				?>
+	<?php
+	if (!$nogrid) {
+	?>
+	<div class="grid grid-pad" style="padding-bottom: 150px;padding-right:0px;">
+	<?php } ?>
+<div style='ss'>
+<div class="ss">
+
+
+
+<div class="banner warning" style="text-align: center;">brick city is currently undergoing devloment, you may encounter connectivity issues.</div>
+
+
+
+</div>
+</div>
+	<?php
+	if($bop->logged_in())
+	{
+		if(time() - $localUser->nextreward > 60)
+		{
+			?>
+			<div class="banner success">
+				You have received a hug! Thank you for using our website.
+			</div>
+			<?php
+		}
+	}
+	?>
