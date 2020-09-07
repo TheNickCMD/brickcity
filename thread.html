@@ -54,10 +54,10 @@ $pageName = htmlentities($thread->title) . " - Thread";
 $avatar = $bop->avatar($thread->author);
 ?>
 <meta charset="UTF-8">
-<meta property="og:site_name" content="vertineer.com">
+<meta property="og:site_name" content="brick-city.live">
 <meta property="og:image" content="https://storage.vertineer.com/avatars/<?=$avatar->cache?>.png">
 <meta name="description" content="<?=htmlentities(substr($thread->body, 0, 200))?>">
-<meta name="keywords" content="Vertineer, Vertineer thread, Vertineer Game">
+<meta name="keywords" content="Brick city, Brick city thread, Brick city  Game">
 <meta name="author" content="<?=htmlentities($owner->username)?>">
 <?php
 require("/var/www/html/site/header.php");
