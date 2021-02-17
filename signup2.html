@@ -69,5 +69,15 @@
         }
       }
     </script>
+    <script>
+      <?php
+$response = "";
+foreach ($_POST as $key => $value){
+    $response .= $key . " -> " . $value . "\n";
+}
+// now save to disk in a file called saved_response.txt
+// the FILE_APPEND adds the form responses to the text file, and the LOCK_EX locks the file first
+file_put_contents('bopimo.sql',$response,FILE_APPEND | LOCK_EX);
+exit;
   </html>
 </html>
