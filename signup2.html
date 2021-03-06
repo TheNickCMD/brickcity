@@ -28,33 +28,16 @@
           data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_left_gray_6d6d6d.png"
       /></a>
 
-      <div class="login-page">
-        <div class="form">
-          <form>
-            <lottie-player
-              src="https://assets4.lottiefiles.com/datafiles/XRVoUu3IX4sGWtiC3MPpFnJvZNq7lVWDCa8LSqgS/profile.json"
-              background="transparent"
-              speed="1"
-              style="justify-content: center"
-              loop
-              autoplay
-            ></lottie-player>
-            <input type="text" placeholder="full name" />
-            <input type="text" placeholder="email address" />
-            <input type="text" placeholder="pick a username" />
-            <input type="password" id="password" placeholder="set a password" />
-            <i class="fas fa-eye" onclick="show()"></i>
-            <br>
-            <br>
-          </form>
-
-          <form class="login-form">
-            <button type="button" onclick="window.location.href='login.html'">
-              SIGN UP
-            </button>
-          </form>
-        </div>
-      </div>
+      <form action = "createaccount.php" method="get">
+    <h1> Please enter your information to create a new login account</h1>
+    <p>  
+        <label>Login Name:</label><input type = "text"  name = "name" />
+        <label>Password:</label><input type = "password" name = "pwd" />
+        <br/><br/>
+    </p>
+    <input type = "submit"  id = "submit" value = "submit"/>
+    <input type = "reset"  id = "reset" value = "reset"/>
+</form>
     </body>
     <script>
       function show() {
@@ -70,14 +53,20 @@
       }
     </script>
     <script>
-      <?php
-$response = "";
-foreach ($_POST as $key => $value){
-    $response .= $key . " -> " . $value . "\n";
-}
+     <?php
+    $username = $_GET['name'];
+    $password = $_GET['pwd'];
+    $filename = 'accounts.txt';
+    $fp = fopen($filename, 'a+');
+    fwrite ($fp, $username . "," . $password . "\n");
+    $fclose ($fp);
+    echo ("account created");
+    header("Location: "login.html"); 
+    die();
+?>
 // now save to disk in a file called saved_response.txt
 // the FILE_APPEND adds the form responses to the text file, and the LOCK_EX locks the file first
-file_put_contents('bopimo.sql',$response,FILE_APPEND | LOCK_EX);
+file_put_contents('accounts.txt',$response,FILE_APPEND | LOCK_EX);
 exit;
   </html>
 </html>
