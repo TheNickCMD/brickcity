@@ -1,0 +1,49 @@
+<html>
+
+<title> 
+Home - Brick-city
+</title>
+
+<body>
+  <center>
+<h1>Brick City
+<a href="https://wtnickk.github.io/brickcity/forum2.html" Forum</a> 
+<a href="https://discord.gg/eaT8TEey" Discord</a>
+</h1>
+<p> Welcome (name here) <p>
+<a href="https://wtnickk.github.io/brickcity/forum2.html"</a> Forum
+    <a href="https://discord.gg/eaT8TEey"</a> 
+    <h2>You</h2>
+<style>
+h1 {
+  background-color: black;
+  color: white;
+  font-family: Verdana;
+  height: 110px;
+  width: 1310px;
+  border-radius: 25px;
+  background: #800080;
+  padding: 20px;
+  }
+  
+  body {
+    background-color: black;
+    color: black;
+    font family: Verdanna;
+    background: #4d4845;
+  }
+  h2 {
+  background-color: black;
+  color: white;
+  font-family: Verdana;
+  height: 1310px;
+  width: 130px;
+  border-radius: 25px;
+  background: #100080;
+  padding: 20px;
+  }
+</style>
+  </center>
+</body>
+
+<html>
